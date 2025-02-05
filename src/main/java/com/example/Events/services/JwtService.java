@@ -19,7 +19,7 @@ public class JwtService {
     @Value("${application.security.jwt.secret-key}")
     private String secretKey;
 
-    @Value("${application.security.jwt.expiration-time}")
+    @Value("${application.security.jwt.expiration}")
     private Long jwtExpiration;
 
     @Value("${application.security.jwt.refresh-token.expiration}")
@@ -57,11 +57,18 @@ public class JwtService {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList()));
 
-        return generateToken(extraClaims, userDetails);
+        return generateToken(extraClaims, userDetails, jwtExpiration);
     }
 
-    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
-        return buildToken(extraClaims, userDetails, jwtExpiration);
+    public String generateRefreshToken(UserDetails userDetails) {
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("type", "refresh");
+
+        return generateToken(extraClaims, userDetails, refreshExpiration);
+    }
+
+    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails, Long expiration) {
+        return buildToken(extraClaims, userDetails, expiration);
     }
 
     private String buildToken(
@@ -118,6 +125,20 @@ public class JwtService {
     public boolean isTokenValid(String token, UserDetails user) {
         final String username = extractUsername(token);
         return (username.equals(user.getUsername())) && !isTokenExpired(token);
+    }
+
+    public boolean isRefreshTokenValid(String token, UserDetails user) {
+        return isTokenValid(token, user) && "refresh".equals(extractTokenType(token));
+    }
+
+    public String extractTokenType(String token) {
+        return Jwts
+                .parser()
+                .verifyWith(getSignInKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("type", String.class);
     }
 
     private SecretKey getSignInKey() {
