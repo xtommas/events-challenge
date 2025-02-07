@@ -31,7 +31,6 @@ public class EventDto {
     @NotBlank
     private String location;
 
-    @NotNull
     private EventStatus status;
 
     public String getTitle() {

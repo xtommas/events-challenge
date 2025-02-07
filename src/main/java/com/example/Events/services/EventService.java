@@ -1,7 +1,9 @@
 package com.example.Events.services;
 
+import com.example.Events.dtos.EventDto;
 import com.example.Events.dtos.UpdateEventDto;
 import com.example.Events.models.Event;
+import com.example.Events.models.EventStatus;
 import com.example.Events.repositories.EventRepository;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -23,7 +25,15 @@ public class EventService {
         return eventRepository.findById(id);
     }
 
-    public Event createEvent(Event event) {
+    public Event createEvent(EventDto eventDto) {
+        Event event = new Event();
+        event.setTitle(eventDto.getTitle());
+        event.setLongDescription(eventDto.getLongDescription());
+        event.setShortDescription(eventDto.getShortDescription());
+        event.setDateAndTime(eventDto.getDateAndTime());
+        event.setOrganizer(eventDto.getOrganizer());
+        event.setLocation(eventDto.getLocation());
+        event.setStatus(eventDto.getStatus() != null ? eventDto.getStatus() : EventStatus.DRAFT);
         return eventRepository.save(event);
     }
 
