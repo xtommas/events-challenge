@@ -5,7 +5,20 @@ import com.example.Events.dtos.UpdateEventDto;
 import com.example.Events.models.Event;
 import com.example.Events.models.EventStatus;
 import com.example.Events.repositories.EventRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.nio.file.AccessDeniedException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,12 +30,76 @@ public class EventService {
         this.eventRepository = eventRepository;
     }
 
-    public List<Event> getAllEvents() {
-        return eventRepository.findAll();
+    public Page<Event> getAllEvents(
+            int page,
+            int size,
+            LocalDate dateStart,
+            LocalDate dateEnd,
+            String title,
+            EventStatus status
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        // Basically, an empty WHERE clause container.
+        // We'll add conditions to it based on provided filters
+        Specification<Event> spec = Specification.where(null);
+
+        if (dateStart != null) {
+            spec = spec.and((root, query, cb) ->
+                    cb.greaterThanOrEqualTo(root.get("dateAndTime"), dateStart.atStartOfDay()));
+        }
+
+        if (dateEnd != null) {
+            spec = spec.and((root, query, cb) ->
+                    cb.lessThanOrEqualTo(root.get("dateAndTime"), dateEnd.atTime(LocalTime.MAX)));
+        }
+
+        if (title != null && !title.trim().isEmpty()) {
+            spec = spec.and((root, query, cb) ->
+                    cb.like(cb.lower(root.get("title")), "%" + title.toLowerCase() + "%"));
+        }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        boolean isUser = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_USER"));
+        boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (isUser) {
+            // If it's a user, exclude DRAFT events unless status is provided
+            spec = spec.and((root, query, cb) -> cb.notEqual(root.get("status"), EventStatus.DRAFT));
+        }
+
+        if (isAdmin && status != null) {
+            // Admin users can filter by any status, including DRAFT
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("status"), status));
+        }
+
+        return eventRepository.findAll(spec, pageable);
     }
 
-    public Optional<Event> getEventById(Long id) {
-        return eventRepository.findById(id);
+    public Event getEventById(Long id) {
+        Optional<Event> eventOptional = eventRepository.findById(id);
+
+        if (eventOptional.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found");
+        }
+
+        Event event = eventOptional.get();
+
+        // Get the current authentication and roles
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isUser = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_USER"));
+        boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (isUser && event.getStatus().equals(EventStatus.DRAFT)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found");
+        }
+
+        return event;
     }
 
     public Event createEvent(EventDto eventDto) {

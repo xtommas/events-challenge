@@ -3,13 +3,19 @@ package com.example.Events.controllers;
 import com.example.Events.dtos.EventDto;
 import com.example.Events.dtos.UpdateEventDto;
 import com.example.Events.models.Event;
+import com.example.Events.models.EventStatus;
 import com.example.Events.services.EventService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Optional;
 
 @RestController
@@ -21,16 +27,27 @@ public class EventController {
         this.eventService = eventService;
     }
 
+//    @PreAuthorize("hasRole('ADMIN') or (hasRole('USER') and #statusParam != 'DRAFT')")
     @GetMapping
-    public List<Event> getAllEvents() {
-        return eventService.getAllEvents();
+    public Page<Event> getAllEvents(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) LocalDate dateStart,
+            @RequestParam(required = false) LocalDate dateEnd,
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) EventStatus status
+    ) {
+        return eventService.getAllEvents(page, size, dateStart, dateEnd, title, status);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Event> getEventById(@PathVariable Long id) {
-        Optional<Event> event = eventService.getEventById(id);
-        return event.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        try {
+            Event event = eventService.getEventById(id);
+            return ResponseEntity.ok(event);
+        } catch (ResponseStatusException ex) {
+            return ResponseEntity.status(ex.getStatusCode()).body(null);
+        }
     }
 
     @PostMapping

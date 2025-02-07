@@ -28,7 +28,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/events/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/events/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/events/**").hasRole("ADMIN")
+
                         .requestMatchers("/auth/**").permitAll()
+
                         .anyRequest().authenticated()
                 )
                 .csrf(AbstractHttpConfigurer::disable)
