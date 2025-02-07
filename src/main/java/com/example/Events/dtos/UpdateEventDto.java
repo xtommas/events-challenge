@@ -1,37 +1,16 @@
 package com.example.Events.dtos;
 
 import com.example.Events.models.EventStatus;
-import jakarta.validation.constraints.Future;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
 
-public class EventDto {
-    @NotBlank
-    @Size(min = 3, max = 100)
+public class UpdateEventDto {
     private String title;
-
-    @NotBlank
-    @Size(min = 10)
     private String longDescription;
-
-    @NotBlank
-    @Size(max = 200)
     private String shortDescription;
-
-    @Future
-    @NotNull
     private LocalDateTime dateAndTime;
-
-    @NotBlank
     private String organizer;
-
-    @NotBlank
     private String location;
-
-    @NotNull
     private EventStatus status;
 
     public String getTitle() {
