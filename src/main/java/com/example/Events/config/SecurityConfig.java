@@ -25,6 +25,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests((auth) -> auth
+                        .requestMatchers(HttpMethod.POST, "/api/v1/events/{id}/signup").authenticated()  // Put signup first
                         .requestMatchers(HttpMethod.POST, "/api/v1/events/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/events/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/events/**").hasRole("ADMIN")

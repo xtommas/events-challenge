@@ -4,30 +4,29 @@ import com.example.Events.dtos.EventDto;
 import com.example.Events.dtos.UpdateEventDto;
 import com.example.Events.models.Event;
 import com.example.Events.models.EventStatus;
+import com.example.Events.models.UserEvent;
 import com.example.Events.services.EventService;
+import com.example.Events.services.UserEventService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Optional;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/events")
 public class EventController {
     private final EventService eventService;
+    private final UserEventService userEventService;
 
-    public EventController(EventService eventService) {
+    public EventController(EventService eventService, UserEventService userEventService) {
         this.eventService = eventService;
+        this.userEventService = userEventService;
     }
 
-//    @PreAuthorize("hasRole('ADMIN') or (hasRole('USER') and #statusParam != 'DRAFT')")
     @GetMapping
     public Page<Event> getAllEvents(
             @RequestParam(defaultValue = "0") int page,
@@ -41,12 +40,13 @@ public class EventController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Event> getEventById(@PathVariable Long id) {
+    public ResponseEntity<Object> getEventById(@PathVariable Long id) {
         try {
             Event event = eventService.getEventById(id);
             return ResponseEntity.ok(event);
-        } catch (ResponseStatusException ex) {
-            return ResponseEntity.status(ex.getStatusCode()).body(null);
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode())
+                    .body(Map.of("message", e.getReason()));
         }
     }
 
@@ -69,5 +69,16 @@ public class EventController {
     public ResponseEntity<Void> deleteEvent(@PathVariable Long id) {
         eventService.deleteEvent(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/signup")
+    public ResponseEntity<Object> signUpForEvent(@PathVariable Long id) {
+        try {
+            UserEvent userEvent = userEventService.signUpForEvent(id);
+            return ResponseEntity.ok(userEvent);
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode())
+                    .body(Map.of("message", e.getReason()));
+        }
     }
 }
