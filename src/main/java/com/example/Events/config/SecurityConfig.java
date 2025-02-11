@@ -29,6 +29,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/events/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/events/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/events/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/users/{username}/promote").hasRole("ADMIN")
 
                         .requestMatchers("/auth/**").permitAll()
 
