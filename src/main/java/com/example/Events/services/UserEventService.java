@@ -4,6 +4,9 @@ import com.example.Events.models.*;
 import com.example.Events.repositories.EventRepository;
 import com.example.Events.repositories.UserEventRepository;
 import com.example.Events.repositories.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,6 +25,32 @@ public class UserEventService {
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
         this.userEventRepository = userEventRepository;
+    }
+
+    public Page<Event> getAllUserEvents(int page, int size, String filter) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        Pageable pageable = PageRequest.of(page, size);
+        LocalDateTime now = LocalDateTime.now();
+
+        boolean pastOnly = false;
+        boolean upcomingOnly = false;
+
+        if (filter != null) {
+            if ("past".equalsIgnoreCase(filter)) {
+                pastOnly = true;
+            } else if ("upcoming".equalsIgnoreCase(filter)) {
+                upcomingOnly = true;
+            } else {
+                throw new IllegalArgumentException("Invalid filter value: " + filter);
+            }
+        }
+
+        return userEventRepository.findEventsByUserId(user.getId(), pastOnly, upcomingOnly, pageable);
     }
 
     public UserEvent signUpForEvent(Long eventId) {

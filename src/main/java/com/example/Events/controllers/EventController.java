@@ -5,6 +5,7 @@ import com.example.Events.dtos.UpdateEventDto;
 import com.example.Events.models.Event;
 import com.example.Events.models.EventStatus;
 import com.example.Events.models.UserEvent;
+import com.example.Events.models.UserEventsFilter;
 import com.example.Events.services.EventService;
 import com.example.Events.services.UserEventService;
 import jakarta.validation.Valid;
