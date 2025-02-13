@@ -8,6 +8,7 @@ import com.example.Events.models.UserEvent;
 import com.example.Events.models.UserEventsFilter;
 import com.example.Events.services.EventService;
 import com.example.Events.services.UserEventService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDate;
 import java.util.Map;
 
+@SecurityRequirement(name = "bearer-jwt")
 @RestController
 @RequestMapping("/api/v1/events")
 public class EventController {

@@ -5,6 +5,7 @@ import com.example.Events.models.Event;
 import com.example.Events.models.UserEventsFilter;
 import com.example.Events.services.AuthenticationService;
 import com.example.Events.services.UserEventService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+@SecurityRequirement(name = "bearer-jwt")
 @RestController
 public class UserController {
     private final UserEventService userEventService;

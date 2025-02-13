@@ -33,6 +33,13 @@ public class SecurityConfig {
 
                         .requestMatchers("/auth/**").permitAll()
 
+                        // Allow access to Swagger
+                        .requestMatchers(
+                                "/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
+
                         .anyRequest().authenticated()
                 )
                 .csrf(AbstractHttpConfigurer::disable)
