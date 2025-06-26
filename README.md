@@ -69,7 +69,7 @@ Then, execute the following command to run the app using Docker:
 docker compose up --build
 ```
 
-Finally, you can make request to `localhost:8080` using an HTTP client or access `http://localhost:8080/swagger-ui/index.html` for the Swagger UI documentation
+Finally, you can make requests to `localhost:8080` using an HTTP client or access `http://localhost:8080/swagger-ui/index.html` for the Swagger UI documentation
 
 ## Notes and considerations
 
